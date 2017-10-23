@@ -1,0 +1,16 @@
+FROM 123
+MAINTAINER cza
+RUN apt-get update
+RUN apt-get install -y vim apache2 net-tools aria2
+RUN mkdir -p /etc/aria2
+RUN mkdir -p /var/www/html/downloads
+ADD web /var/www/html/
+ADD aria2.conf /etc/aria2/
+ADD dht.dat /etc/aria2/
+RUN echo ''>/etc/aria2/aria2.session
+ADD start.sh /
+RUN chmod +x /start.sh
+
+EXPOSE 80 6800
+CMD ["/start.sh"]
+
