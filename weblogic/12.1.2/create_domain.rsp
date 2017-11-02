@@ -1,0 +1,20 @@
+read template from "/opt/weblogic/Oracle/Middleware/wlserver/common/templates/wls/wls.jar";
+ 
+set JavaHome "/usr/java/jdk1.7.0_79"; 
+set ServerStartMode "dev"; 
+ 
+find Server "AdminServer" as AdminServer;
+set AdminServer.ListenAddress "";
+set AdminServer.ListenPort "7001";
+set AdminServer.SSL.Enabled "true";
+set AdminServer.SSL.ListenPort "7002";
+ 
+//use templates default weblogic user
+find User "weblogic" as u1;
+set u1.password "weblogic123";
+ 
+write domain to "/opt/weblogic/Oracle/Middleware/user_projects/domains/base_domain/"; 
+ 
+// The domain name will be "demo-domain"
+ 
+close template;
