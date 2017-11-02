@@ -1,0 +1,31 @@
+FROM centos:6.6
+MAINTAINER cza
+RUN groupadd web
+RUN useradd -g web -m -d /opt/weblogic weblogic
+RUN /bin/echo 'root:123456'|chpasswd
+RUN /bin/echo 'weblogic:weblogic'|chpasswd
+RUN chown -R weblogic:web /opt/weblogic/
+ADD jdk-7u79-linux-x64.rpm /
+RUN rpm -ivh /jdk-7u79-linux-x64.rpm
+RUN rm -rf /jdk-7u79-linux-x64.rpm
+ENV JAVA_HOME /usr/java/jdk1.7.0_79
+ENV JRE_HOME /usr/java/jdk1.7.0_79/jre
+ENV CLASSPATH $CLASSPATH:$JAVA_HOME/lib:$JAVA_HOME/jre/lib
+ENV PATH $JAVA_HOME/bin:$JRE_HOME/bin:$PATH
+RUN /bin/sed -i 's/securerandom.source=file:\/dev\/urandom/securerandom.source=file:\/dev\/.\/urandom/g' /usr/java/jdk1.7.0_79/jre/lib/security/java.security
+ADD wls_121200.jar /opt/weblogic/wls_121200.jar
+ADD oraInst.loc /opt/weblogic/oraInst.loc
+ADD wls.rsp /opt/weblogic/wls.rsp
+ADD create_domain.rsp /opt/weblogic/create_domain.rsp
+RUN chmod 777 /opt/weblogic/create_domain.rsp
+RUN chmod 777 /opt/weblogic/wls.rsp
+RUN chmod 777 /opt/weblogic/wls_121200.jar
+RUN chmod 777 /opt/weblogic/oraInst.loc
+USER weblogic
+RUN java -jar /opt/weblogic/wls_121200.jar -silent -responseFile /opt/weblogic/wls.rsp -invPtrLoc /opt/weblogic/oraInst.loc
+RUN mkdir -p /opt/weblogic/Oracle/Middleware/user_projects/domains/base_domain/
+RUN bash /opt/weblogic/Oracle/Middleware/wlserver/common/bin/config.sh -mode=silent -silent_script=/opt/weblogic/create_domain.rsp -logfile=/opt/weblogic/create_domain.log
+WORKDIR /opt/weblogic/Oracle/Middleware/user_projects/domains/base_domain
+RUN rm -rf /opt/weblogic/wls_121200.jar /opt/weblogic/wls.rsp /opt/weblogic/oralnst.loc  /opt/weblogic/create_domain.rsp
+EXPOSE 7001 8001
+CMD bash /opt/weblogic/Oracle/Middleware/user_projects/domains/base_domain/bin/startWebLogic.sh
